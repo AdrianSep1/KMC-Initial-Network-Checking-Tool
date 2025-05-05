@@ -1,4 +1,20 @@
-# KMC Initial Network Checking Tool V1.1
+# Diagnostic Tool for Network and System Performance
+# Author: [Angelito Lemuel Balat/KMC Community Inc.]
+# Collects system metrics and runs network tests only. No changes are made.
+
+# KMC Initial Network Checking Tool V1.3
+
+Write-Output "Diagnostic Tool for Network and System Performance"
+Write-Output ""
+Write-Output "Author: [Angelito Lemuel Balat/KMC Community Inc.]"
+Write-Output ""
+Write-Output "Collects system metrics and runs network tests only. No changes are made."
+Write-Output ""
+
+$ScriptVersion = "1.3"
+Write-Output "KMC Initial Network Checking Tool - Version $ScriptVersion"
+Write-Output ""
+
 
 # Set execution policy temporarily for the current session
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
@@ -56,11 +72,11 @@ $wlanInfo | ForEach-Object { Write-Output $_ }
 # Function: NSLookup
 $targets = @("8.8.8.8", "1.1.1.1", "www.google.com", "208.67.222.222", "www.nasa.gov", "www.starwars.com", "www.godaddy.com", "www.att.com", "www.kmc.solutions")
 
-Write-Output "NSLookup"
+Write-Output "NSLookup (IPv4 Only)"
 foreach ($target in $targets) {
     Write-Output "`nNSLookup for $target"
     try {
-        $result = nslookup $target | Out-String
+        $result = nslookup.exe -type=A $target | Out-String
         $summary.NSLookup += "NSLookup for $target`n$result"
         Write-Output $result
     } catch {
@@ -148,15 +164,16 @@ Write-Output "Ping and Traceroute for Multiple Targets"
 foreach ($target in $targets) {
     Write-Output "`nPerforming Ping Test for: $target"
     try {
-        $pingResults = Test-Connection -ComputerName $target -Count 10 -ErrorAction Stop
+        $pingResults = Test-Connection -ComputerName $target -Count 15 -ErrorAction Stop
         $pingText = $pingResults | Out-String
         $summary.PingTest += "Ping to $target`n$pingText"
         Write-Output $pingText
 
         $avgLatency = ($pingResults | Measure-Object -Property ResponseTime -Average).Average
         $rating = switch ($avgLatency) {
-            { $_ -le 50 }  { "Excellent"; break }
-            { $_ -le 100 } { "Good"; break }
+            { $_ -le 20 }  { "Excellent"; break }
+            { $_ -le 40 }  { "Good"; break }
+            { $_ -le 100 } { "Acceptable"; break }
             { $_ -le 200 } { "Poor"; break }
             default        { "Bad" }
         }
@@ -164,8 +181,9 @@ foreach ($target in $targets) {
         $color = switch ($rating) {
             "Excellent" { "Green" }
             "Good"      { "Yellow" }
-            "Poor"      { "DarkYellow" }
-            "Bad"       { "Red" }
+            "Acceptable" { "DarkYellow" }
+            "Poor"      { "Red" }
+            "Bad"       { "DarkRed" }
         }
 
         Write-Host "Average Latency: $([math]::Round($avgLatency, 2)) ms - Performance Rating: $rating" -ForegroundColor $color
@@ -197,6 +215,37 @@ Write-Output "`n=== Total Bytes Sent/Received per Interface ==="
 $bytesInfo = Get-CimInstance -ClassName Win32_PerfFormattedData_Tcpip_NetworkInterface |
     Select-Object Name, BytesTotalPersec | Format-Table -AutoSize | Out-String
 Write-Output $bytesInfo
+
+$speedtestCLIPath = Join-Path -Path (Get-Location) -ChildPath "speedtest.exe"
+
+if (Test-Path $speedtestCLIPath) {
+    Write-Output "Running speed test to KMC Makati Server..."
+    Write-Output "----------------------------------------`n"
+    $speedtestOutput = & $speedtestCLIPath --server-id 62521
+    
+    foreach ($line in $speedtestOutput) {
+        Write-Output $line
+    }
+
+    # Extract and clean up speeds for summary
+    $downloadSpeed = ($speedtestOutput | Select-String -Pattern "Download:" -CaseSensitive).Line -replace "Download:\s*", ""
+    $uploadSpeed = ($speedtestOutput | Select-String -Pattern "Upload:" -CaseSensitive).Line -replace "Upload:\s*", ""
+    
+    Write-Output "`nTest Summary:"
+    Write-Output "----------------------------------------"
+    Write-Output "Download Speed: $downloadSpeed"
+    Write-Output "Upload Speed  : $uploadSpeed"
+    
+    $summary.Speedtest = @"
+Speed Test Results:
+Download Speed: $downloadSpeed
+Upload Speed: $uploadSpeed
+"@
+} else {
+    $errorMsg = "Error: Speedtest CLI not found at $speedtestCLIPath"
+    Write-Output $errorMsg
+    $summary.Speedtest = $errorMsg
+}
 
 # Run Data Collection
 Get-NetworkAdapterInfo
@@ -286,5 +335,4 @@ $(foreach ($adapter in $summary.NetworkAdapters) {
 Read-Host -Prompt "Press Enter to exit"
 # End of Script
 # KMC Initial Network Checking Tool
-# Version 1.1
- 
+# Version 1.3
