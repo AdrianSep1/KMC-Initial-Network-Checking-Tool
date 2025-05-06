@@ -4,17 +4,15 @@
 
 # KMC Initial Network Checking Tool V1.3
 
-Write-Output "Diagnostic Tool for Network and System Performance"
-Write-Output ""
-Write-Output "Author: [Angelito Lemuel Balat/KMC Community Inc.]"
-Write-Output ""
-Write-Output "Collects system metrics and runs network tests only. No changes are made."
-Write-Output ""
-
 $ScriptVersion = "1.3"
 Write-Output "KMC Initial Network Checking Tool - Version $ScriptVersion"
 Write-Output ""
 
+Write-Output "Diagnostic Tool for Network and System Performance"
+Write-Output ""
+
+Write-Output "Collects system metrics and runs network tests only. No changes are made."
+Write-Output ""
 
 # Set execution policy temporarily for the current session
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
