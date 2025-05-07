@@ -286,17 +286,19 @@ Timestamp: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 Hostname: $($summary.Hostname)
 Uptime: $($summary.Uptime)
 
-CPU Usage: $($summary.CPULoad)
-Memory Usage: $($summary.MemoryUsage)
-
-Disk Usage:
-$(foreach ($disk in $summary.DiskUsage) { "Drive $($disk.Drive): Used: $($disk.UsedSpace), Free: $($disk.FreeSpace), Total: $($disk.TotalSpace)" } -join "`n")
-
 IP Configuration:
 $($summary.IPConfig)
 
 MAC Addresses:
 $($summary.MACAddresses -join "`n")
+CPU Usage: $($summary.CPULoad)
+
+Memory Usage: $($summary.MemoryUsage)
+
+Disk Usage:
+$(foreach ($disk in $summary.DiskUsage) { "Drive $($disk.Drive): Used: $($disk.UsedSpace), Free: $($disk.FreeSpace), Total: $($disk.TotalSpace)" } -join "`n")
+
+
 
 Link Speed Overview:
 $(Get-NetAdapter | Select-Object Name, Status, LinkSpeed | Format-Table -AutoSize | Out-String)
