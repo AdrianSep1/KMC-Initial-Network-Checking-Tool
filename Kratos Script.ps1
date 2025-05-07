@@ -299,7 +299,6 @@ Disk Usage:
 $(foreach ($disk in $summary.DiskUsage) { "Drive $($disk.Drive): Used: $($disk.UsedSpace), Free: $($disk.FreeSpace), Total: $($disk.TotalSpace)" } -join "`n")
 
 
-
 Link Speed Overview:
 $(Get-NetAdapter | Select-Object Name, Status, LinkSpeed | Format-Table -AutoSize | Out-String)
 
